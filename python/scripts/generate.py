@@ -6,10 +6,11 @@ import logging
 import re
 import shutil
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import pkg_resources
 from grpc_tools import protoc
+from google.protobuf.descriptor_pb2 import FileDescriptorSet
 
 
 def setup_logger():
@@ -42,8 +43,23 @@ def generate_proto_bindings(protos_path: Path):
     except FileNotFoundError:
         pass
     output_directory.mkdir(parents=True)
+    ledger_api_fds_path = output_directory / 'ledger_api_fds.proto'  # type: Path
+
+    daml_lf_pds_path = output_directory / 'daml_lf_pds.proto'  # type: Path
+
+    generate_raw_bindings(ledger_api_path, output_directory / "0", ledger_api_fds_path, True)
+    generate_raw_bindings(daml_lf_archive_path, output_directory / "0", daml_lf_pds_path, False)
+
+    ledger_api_fds = FileDescriptorSet()
+    ledger_api_fds.ParseFromString(ledger_api_fds_path.read_bytes())
+
+    output_typing_hints(ledger_api_fds)
+
+    daml_lf_pds = FileDescriptorSet()
+    daml_lf_pds.ParseFromString(daml_lf_pds_path.read_bytes())
 
     generate_raw_bindings(protos_path, output_directory / "0", True)
+    output_typing_hints(daml_lf_pds)
 
     (output_directory / "1").mkdir()
     (output_directory / "1" / "__init__.py").touch()
@@ -74,6 +90,15 @@ def generate_proto_bindings(protos_path: Path):
     (output_directory / "1").rename(final_output_dir)
 
 
+def output_typing_hints(fds: FileDescriptorSet):
+    for file_pb in fds.file:
+        print(f'{file_pb.package}: {file_pb.name}')
+        print(f'    {len(file_pb.message_type)} top-level message(s)')
+        print(f'    {len(file_pb.enum_type)} top-level enums(s)')
+        print(f'    {len(file_pb.service)} top-level service(s)')
+        print(f'    {len(file_pb.extension)} top-level extension(s)')
+
+
 def rewrite_import(parent_module: str, line: str) -> str:
     result = FROM.match(line)
     if result:
@@ -102,7 +127,11 @@ def ensure_module_path(path: Path) -> None:
     (path.parent / "__init__.py").touch()
 
 
-def generate_raw_bindings(input_directory: Path, output_directory: Path, grpc: bool) -> int:
+def generate_raw_bindings(
+        input_directory: Path,
+        output_directory: Path,
+        output_file_descriptor: Optional[Path],
+        grpc: bool) -> int:
     """
     Create .py files that correspond to all of the .proto files (recursively) listed in the
     specified directory.
@@ -120,6 +149,8 @@ def generate_raw_bindings(input_directory: Path, output_directory: Path, grpc: b
         'pipenv run python3 -m grpc_tools.protoc',
         f'-I{input_directory}/',
         f'--python_out={output_directory}']
+    if output_file_descriptor:
+        protoc_args.append(f'-o{output_file_descriptor}')
     if grpc:
         protoc_args.append(f'--grpc_python_out={output_directory}')
     protoc_args.extend(map(str, proto_files))
