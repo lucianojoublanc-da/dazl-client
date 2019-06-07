@@ -1395,6 +1395,12 @@ class DefDataType:
         def __init__(self, fields: 'Sequence[FieldWithType]'):
             self.fields = fields
 
+    class EnumConstructors:
+        constructors: 'Sequence[str]'
+
+        def __init__(self, constructors: 'Sequence[str]'):
+            self.constructors = constructors
+
     name: DottedName
     params: 'Sequence[TypeVarWithKind]'
     _DataCons_name: str
@@ -1408,6 +1414,7 @@ class DefDataType:
             params: 'Sequence[TypeVarWithKind]' = MISSING,
             record: 'DefDataType.Fields' = MISSING,
             variant: 'DefDataType.Fields' = MISSING,
+            enum: 'DefDataType.EnumConstructors' = MISSING,
             serializable: bool = MISSING,
             location: 'Location' = MISSING):
         self.name = name
@@ -1418,16 +1425,23 @@ class DefDataType:
         elif variant is not MISSING:
             self._DataCons_name = 'variant'
             self._DataCons_value = variant
+        elif enum is not MISSING:
+            self._DataCons_name = 'enum'
+            self._DataCons_value = enum
         self.serializable = serializable
         self.location = location
 
     @property
-    def record(self):
+    def record(self) -> 'Optional[DefDataType.Fields]':
         return self._DataCons_value if self._DataCons_name == 'record' else None
 
     @property
-    def variant(self):
+    def variant(self) -> 'Optional[DefDataType.Fields]':
         return self._DataCons_value if self._DataCons_name == 'variant' else None
+
+    @property
+    def enum(self) -> 'Optional[DefDataType.EnumConstructors]':
+        return self._DataCons_value if self._DataCons_name == 'enum' else None
 
 
 @dataclass(frozen=True)
