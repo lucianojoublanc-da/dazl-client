@@ -1,4 +1,4 @@
-#!/usr/bin/env poetry run python3
+#!/usr/bin/env .venv/bin/python3
 # Copyright (c) 2019 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
@@ -28,7 +28,7 @@ FROM = re.compile(r'from ([\w.]+) import (\w+) as (\w+)')
 
 
 def main() -> None:
-    generate_proto_bindings(ROOT / '.cache' / 'protos')
+    generate_proto_bindings(ROOT / '.cache' / 'protos' / '100.10.30')
 
 
 def generate_proto_bindings(protos_path: Path):
@@ -43,7 +43,8 @@ def generate_proto_bindings(protos_path: Path):
         pass
     output_directory.mkdir(parents=True)
 
-    generate_raw_bindings(protos_path, output_directory / "0", True)
+    generate_raw_bindings(protos_path, ROOT / '.cache' / 'py-raw', True)
+    return
 
     (output_directory / "1").mkdir()
     (output_directory / "1" / "__init__.py").touch()
