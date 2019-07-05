@@ -7,16 +7,20 @@ version := $(shell python3 setup.py --version)
 .PHONY: wheel
 wheel: dist/dazl_pb-$(version)-py3-none-any.whl
 
+.PHONY: python
+python: $(python)
+
 $(python):
 	python3 -m venv .venv
+	$(pip) install grpcio-tools
 
 $(pip): $(python)
 
 $(pip-compile): $(pip)
 	$(pip) install pip-tools
 
-requirements.txt: setup.py
+requirements.txt: $(pip-compile) setup.py
 	CUSTOM_COMPILE_COMMAND="make $@" $(pip-compile) --generate-hashes
 
-dist/dazl_pb-$(version)-py3-none-any.whl:
+dist/dazl_pb-$(version)-py3-none-any.whl: $(pip)
 	$(pip) wheel . --no-deps -w dist
