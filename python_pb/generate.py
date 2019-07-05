@@ -28,7 +28,7 @@ FROM = re.compile(r'from ([\w.]+) import (\w+) as (\w+)')
 
 
 def main() -> None:
-    generate_proto_bindings(ROOT / '.cache' / 'protos' / '100.10.30')
+    generate_proto_bindings(ROOT / '.cache' / 'protos' / '100.13.10')
 
 
 def generate_proto_bindings(protos_path: Path):
