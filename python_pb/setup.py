@@ -9,6 +9,7 @@ import zipfile
 from distutils.cmd import Command
 from pathlib import Path
 from setuptools import setup
+from setuptools.command.build_py import build_py
 from typing import BinaryIO, Optional, Union
 from urllib.request import urlopen
 
@@ -25,8 +26,8 @@ ROOT = Path(__file__).absolute().parent
 DAML_SDK_BASE_URL = 'https://digitalassetsdk.bintray.com/DigitalAssetSDK'
 GOOGLE_APIS_BASE_URL = 'https://raw.githubusercontent.com/googleapis/googleapis/master'
 
-DAML_LF_JAR = 'daml-lf-archive.jar'
-LEDGER_API_TGZ = 'ledger-api-protos.tar.gz'
+DAML_LF_JAR = f'daml-lf-archive-{DAML_SDK_VERSION}.jar'
+LEDGER_API_TGZ = f'ledger-api-protos-{DAML_SDK_VERSION}.tar.gz'
 GOOGLE_RPC_STATUS_PROTO = 'google-rpc-status.proto'
 
 
@@ -117,8 +118,42 @@ class FetchCommand(Command):
         fetch()
 
 
-if __name__ == '__main__':
-    setup(
-        cmdclass={
-            'fetch': FetchCommand
-        })
+class GenerateSourceCommand(Command):
+    description = 'fetch Protobuf dependencies'
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        self.run_command('fetch')
+
+
+
+class BuildPyCommand(build_py):
+  """Custom build command."""
+
+  def run(self):
+    self.run_command('generate_py')
+    build_py.run(self)
+
+
+setup(
+    name='dazl-pb',
+    version=VERSION,
+    python_requires='>=3.6',
+    author='Digital Asset (Switzerland) GmbH',
+    author_email='support@digitalasset.com',
+    cmdclass={
+        'fetch': FetchCommand,
+        'generate_py': GenerateSourceCommand,
+        'build_py': BuildPyCommand,
+    },
+    install_requires=[
+        'grpcio>=1.20.1',
+        'protobuf>=3.8.0',
+    ])
+
