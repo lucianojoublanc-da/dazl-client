@@ -22,5 +22,8 @@ $(pip-compile): $(pip)
 requirements.txt: $(pip-compile) setup.py
 	CUSTOM_COMPILE_COMMAND="make $@" $(pip-compile) --generate-hashes
 
+requirements-dev.txt: $(pip-compile) requirements-dev.in
+	CUSTOM_COMPILE_COMMAND="make $@" $(pip-compile) --generate-hashes
+
 dist/dazl_pb-$(version)-py3-none-any.whl: $(pip)
 	$(pip) wheel . --no-deps -w dist
