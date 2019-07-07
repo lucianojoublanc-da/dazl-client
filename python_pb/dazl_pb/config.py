@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Mapping, NamedTuple
 
 
 # Version of this library. Generally the same as the SDK version.
@@ -23,3 +24,31 @@ fetch_urls = {
     LEDGER_API_TGZ: f'{DAML_SDK_BASE_URL}/com/digitalasset/ledger-api-protos/{DAML_SDK_VERSION}/ledger-api-protos-{DAML_SDK_VERSION}.tar.gz',
     GOOGLE_RPC_STATUS_PROTO: f'{GOOGLE_APIS_BASE_URL}/google/rpc/status.proto',
 }
+
+
+COPYRIGHT = '# (c)\n'
+
+
+class Configuration(NamedTuple):
+    fetch_urls: 'Mapping[str, str]'
+    directories: 'Directories'
+    copyright: 'str'
+
+
+class Directories(NamedTuple):
+    download: 'Path'
+    protos: 'Path'
+    pyraw: 'Path'
+    final: 'Path'
+
+
+CONFIG = Configuration(
+    fetch_urls=fetch_urls,
+    directories=Directories(
+        download=ROOT / '.cache' / 'download',
+        protos=ROOT / '.cache' / 'protos' / DAML_SDK_VERSION,
+        pyraw=ROOT / '.cache' / 'pyraw' / DAML_SDK_VERSION,
+        final=ROOT / '.cache' / 'pyfinal' / VERSION
+    ),
+    copyright=COPYRIGHT
+)

@@ -31,3 +31,14 @@ def download(url: 'str', path: 'Path', force: 'bool' = False) -> 'Path':
          with path.open('wb') as f:
              shutil.copyfileobj(response, f)
     return path
+
+
+def remainder(s: str, prefix: str) -> 'Optional[str]':
+    """
+    If ``s`` startswith ``prefix``, return the rest of the string ``s``;
+    otherwise return None.
+    """
+    if s.startswith(prefix):
+        return s[len(prefix):]
+    else:
+        return None
